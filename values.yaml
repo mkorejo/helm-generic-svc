@@ -1,0 +1,196 @@
+# **********************
+# *** srpt-svc VALUES ***
+# **********************
+
+# Specify the twelve-digit AWS account ID where the service is being deployed.
+awsAccountID:
+
+# Specify the AWS region.
+awsRegion: us-east-1
+
+# Customer/tenant associated with the deployment (required).
+customer:
+
+# Application tier associated with the deployment (required).
+tier:
+
+# Specify the name of the service being deployed.
+name:
+
+# Specify a list of imagePullSecrets
+imagePullSecrets: []
+
+# Name of EKS/ROSA cluster.
+clusterName:
+
+# Top-level domains for DNS
+dnsZone: apps.sarepta.com
+
+additionalAnnotations: {}
+
+
+# ********************************************
+# *** WORKLOAD, CONFIGURATION, and VOLUMES ***
+# ********************************************
+
+# Deploy workload using traditional K8s Deployment resource.
+deployment:
+  enabled: true
+
+# Specify filename, path, and contents of JSON-based or INI configurations.
+# For JSON-based configurations, configFilename determines the name of the configuration file.
+# For INI configurations (Spring Boot applications), configFilename must contain `.properties` and
+# filenames are defined in the configuration itself.
+#
+# JSON-based configuration example:
+# config:
+#   foo: baaz
+#   quux:
+#     key: value
+#
+# INI configuration example:
+# configFilename: system.properties
+# config:
+#   application.properties: |
+#     key=value
+#     another.key="some other value"
+#   database.properties: |
+#     database.host=something
+#     database.port=5432
+configFilename: config.json
+configPath: /data/config
+config: {}
+
+# Specify the image repository and tag for the service.
+image:
+  repository: ghcr.io/srpt/placeholder
+  pullPolicy: IfNotPresent
+  tag: latest
+
+# Specify a list of additional name/value environment variables.
+env: []
+# - name: FOO
+#   value: "BAR"
+# - name: MY_SECRET
+#   valueFrom:
+#     secretKeyRef:
+#       name: my-k8s-secret
+#       key: secret-key
+
+# Enable deployment of a Kubernetes Job/CronJob with a separate image, in addition to Rollout or Deployment.
+# Providing a value for job.cronSchedule will enable CronJob.
+job:
+  enabled: false
+  command: []
+  args: []
+  concurrencyPolicy: Forbid
+# cronSchedule: '* * * * *'
+  image:
+    repository: ghcr.io/srpt/placeholder
+    pullPolicy: IfNotPresent
+    tag: latest
+  # Jobs are cleaned after 10 days.
+  ttlSecondsAfterFinished: 864000
+
+initialProbeDelay: 10
+livenessProbePath: /ping
+readinessProbePath: /ping
+
+# Specify additional pod annotations.
+# Pod annotations are used to configure IAM role assumption on kOps clusters.
+podAnnotations: {}
+
+# Specify additional volumes
+volumes:
+  # List Kubernetes Secrets to be mounted as volumes. Secrets must exist in the same namespace.
+  secrets:
+  # - name: srpt-ghcr
+  #   mountPath: /tmp/srpt-ghcr
+
+
+# ************
+# *** RBAC ***
+# ************
+
+serviceAccount:
+  create: false
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated.
+  # name: default
+role:
+  rules:
+  # - apiGroups: ["apps"]
+  #   resources: ["deployments"]
+  #   verbs: ["get", "patch", "update"]
+  # - apiGroups: ["argoproj.io"]
+  #   resources: ["rollouts"]
+  #   verbs: ["get", "patch", "update"]
+
+
+# *******************************
+# ***** SERVICE and INGRESS *****
+# *******************************
+
+service:
+  type: ClusterIP
+  containerPort: 8080
+  port: 80
+
+# Private ingress
+# Ingress is required when using Argo CD rollouts.
+ingress:
+  enabled: true
+  className: openshift-default
+  annotations:
+    route.openshift.io/termination: edge
+  hosts:
+  - host: someapp
+    paths:
+    - path: /
+      pathType: ImplementationSpecific
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+
+# *********************************
+# ***** RESOURCES and SCALING *****
+# *********************************
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+replicaCount: 1
+resources: {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+revisionHistoryLimit: 2
+
+
+# **************************************
+# ***** POD PLACEMENT and SECURITY *****
+# **************************************
+
+affinity: {}
+nodeSelector: {}
+tolerations: []
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000

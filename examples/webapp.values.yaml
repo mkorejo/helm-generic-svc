@@ -1,0 +1,25 @@
+# Specify the name of the service being deployed.
+name: <application-name>
+tier: <application-tier>
+dnsZone: apps.sarepta.com
+
+
+# ********************************************
+# *** WORKLOAD, CONFIGURATION, and VOLUMES ***
+# ********************************************
+
+image:
+  repository: ghcr.io/srpt/placeholder
+  pullPolicy: IfNotPresent
+  tag: latest
+
+
+# ************
+# *** RBAC ***
+# ************
+
+serviceAccount:
+  create: true
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::<aws-account-id>:role/<aws-role-name>
+  name: <service-account-name>

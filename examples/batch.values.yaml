@@ -1,0 +1,57 @@
+# Specify the name of the service being deployed.
+name: <application-name>
+tier: <application-tier>
+
+additionalAnnotations:
+  argocd.argoproj.io/sync-options: Replace=true
+
+
+# ********************************************
+# *** WORKLOAD, CONFIGURATION, and VOLUMES ***
+# ********************************************
+
+# Deploy workload using traditional K8s Deployment resource.
+deployment:
+  enabled: false
+
+# Specify a list of additional name/value environment variables.
+env: []
+# - name: FOO
+#   value: "BAR"
+# - name: MY_SECRET
+#   valueFrom:
+#     secretKeyRef:
+#       name: my-k8s-secret
+#       key: secret-key
+
+# Enable deployment of a Kubernetes Job/CronJob with a separate image, in addition to Rollout or Deployment.
+# Providing a value for job.cronSchedule will enable CronJob.
+job:
+  enabled: true
+  command: []
+  args: []
+  concurrencyPolicy: Forbid
+# cronSchedule: '* * * * *'
+  image:
+    repository: <ecr-repository-url>
+    pullPolicy: Always
+    tag: latest
+
+# Specify additional pod annotations.
+# Pod annotations are used to configure IAM role assumption on kOps clusters.
+podAnnotations: {}
+
+
+# ************
+# *** RBAC ***
+# ************
+
+serviceAccount:
+  create: true
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::<aws-account-id>:role/<aws-role-name>
+  name: <service-account-name>
+
+
+ingress:
+  enabled: false

@@ -1,0 +1,93 @@
+{{- if and (.Values.job.enabled) (empty .Values.job.cronSchedule) }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  generateName: {{ include "srpt-svc.name" . }}-job
+  labels:
+    {{- include "srpt-svc.selectorLabels" . | nindent 4 }}
+    env: {{ .Values.tier }}
+    service: {{ include "srpt-svc.name" . }}
+    version: {{ .Chart.Version }}
+  {{- if not (empty .Values.additionalAnnotations) }}
+  annotations:
+    {{- with .Values.additionalAnnotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- end }}
+spec:
+  ttlSecondsAfterFinished: {{ .Values.job.ttlSecondsAfterFinished }}
+  template:
+    metadata:
+      name: {{ include "srpt-svc.name" . }}-job
+      labels:
+        {{- include "srpt-svc.selectorLabels" . | nindent 8 }}
+        env: {{ .Values.tier }}
+        service: {{ include "srpt-svc.name" . }}
+        version: {{ .Chart.Version }}
+    spec:
+      serviceAccountName: {{ include "srpt-svc.serviceAccountName" . }}
+      containers:
+        - name: main
+          image: "{{ .Values.job.image.repository }}:{{ .Values.job.image.tag }}"
+        {{- if .Values.env }}
+          env:
+          {{- range .Values.env }}
+          - name: {{ .name }}
+            {{- if .value }}
+            value: {{ .value | quote }}
+            {{- else if .valueFrom }}
+            valueFrom:
+              secretKeyRef:
+                key: {{ .valueFrom.secretKeyRef.key }}
+                name: {{ .valueFrom.secretKeyRef.name }}
+            {{- end }}
+          {{- end }}
+        {{- end }}
+        {{- if gt (len .Values.job.args) 0 }}
+          {{- if .Values.job.command }}
+          command: {{ .Values.job.command }}
+          {{- end }}
+          args:
+            {{- range .Values.job.args }}
+            - {{ . }}
+            {{- end }}
+        {{- end }}
+          imagePullPolicy: {{ .Values.job.image.pullPolicy }}
+        {{- if or (.Values.volumes.secrets) (not (empty .Values.config)) }}
+          volumeMounts:
+          {{- if .Values.volumes.secrets }}
+            {{- range .Values.volumes.secrets }}
+            - name: {{ print .name "-vol" }}
+              mountPath: {{ .mountPath }}
+              readOnly: true
+            {{- end }}
+          {{- end }}
+          {{- if not (empty .Values.config) }}
+            - name: config
+              mountPath: {{ .Values.configPath | default "/data/config" }}
+          {{- end }}
+        {{- end }}
+        {{- if .Values.resources }}
+          resources: {{ toYaml .Values.resources | nindent 10 }}
+        {{- end }}
+    {{- if or (.Values.volumes.secrets) (not (empty .Values.config)) }}
+      volumes:
+      {{- if .Values.volumes.secrets }}
+      {{- range .Values.volumes.secrets }}
+      - name: {{ print .name "-vol" }}
+        secret:
+          secretName: {{ .name }}
+      {{- end }}
+      {{- end }}
+      {{- if not (empty .Values.config) }}
+      - name: config
+        configMap:
+          name: {{ include "srpt-svc.name" . }}
+      {{- end }}
+    {{- end }}
+      restartPolicy: Never
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+      {{- toYaml . | nindent 8 }}
+    {{- end }}
+{{- end }}

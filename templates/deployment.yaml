@@ -1,0 +1,130 @@
+{{- if .Values.deployment.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "srpt-svc.name" . }}
+  labels:
+    {{- include "srpt-svc.selectorLabels" . | nindent 4 }}
+    env: {{ .Values.tier }}
+    service: {{ include "srpt-svc.name" . }}
+    version: {{ .Chart.Version }}
+  {{- if not (empty .Values.additionalAnnotations) }}
+  annotations:
+    {{- with .Values.additionalAnnotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- end }}
+spec:
+  {{- if and (.Values.autoscaling) (not .Values.autoscaling.enabled) }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
+  selector:
+    matchLabels:
+      {{- include "srpt-svc.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "srpt-svc.selectorLabels" . | nindent 8 }}
+        env: {{ .Values.tier }}
+        service: {{ include "srpt-svc.name" . }}
+        version: {{ .Chart.Version }}
+      annotations:
+      {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      serviceAccountName: {{ include "srpt-svc.serviceAccountName" . }}
+      containers:
+        - name: main
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        {{- if .Values.env }}
+          env:
+          {{- range .Values.env }}
+          - name: {{ .name }}
+            {{- if .value }}
+            value: {{ .value | quote }}
+            {{- else if .valueFrom }}
+            valueFrom:
+              secretKeyRef:
+                key: {{ .valueFrom.secretKeyRef.key }}
+                name: {{ .valueFrom.secretKeyRef.name }}
+            {{- end }}
+          {{- end }}
+        {{- end }}
+        {{- if or (.Values.volumes.secrets) (not (empty .Values.config)) }}
+          volumeMounts:
+          {{- if .Values.volumes.secrets }}
+            {{- range .Values.volumes.secrets }}
+            - name: {{ print .name "-vol" }}
+              mountPath: {{ .mountPath }}
+              readOnly: true
+            {{- end }}
+          {{- end }}
+          {{- if not (empty .Values.config) }}
+            - name: config
+              mountPath: {{ .Values.configPath | default "/data/config" }}
+          {{- end }}
+        {{- end }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.containerPort }}
+              protocol: TCP
+        {{- if not (empty .Values.livenessProbePath) }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.livenessProbePath }}
+              port: {{ .Values.service.containerPort }}
+            initialDelaySeconds: {{ .Values.initialProbeDelay }}
+        {{- end }}
+        {{- if not (empty .Values.readinessProbePath) }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.readinessProbePath }}
+              port: {{ .Values.service.containerPort }}
+            initialDelaySeconds: {{ .Values.initialProbeDelay }}
+        {{- end }}
+        {{- if .Values.resources }}
+          resources: {{ toYaml .Values.resources | nindent 12 }}
+        {{- end }}
+    {{- if or (.Values.volumes.secrets) (not (empty .Values.config)) }}
+      volumes:
+      {{- if .Values.volumes.secrets }}
+      {{- range .Values.volumes.secrets }}
+      - name: {{ print .name "-vol" }}
+        secret:
+          secretName: {{ .name }}
+      {{- end }}
+      {{- end }}
+      {{- if not (empty .Values.config) }}
+      - name: config
+        configMap:
+          name: {{ include "srpt-svc.name" . }}
+      {{- end }}
+    {{- end }}
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- if .Values.affinity }}
+      affinity:
+      {{- if .Values.affinity.antiAffinity }}
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - {{ include "srpt-svc.name" . }}
+              topologyKey: {{ .Values.affinity.antiAffinity.topologyKey }}
+      {{- end}}
+    {{- end}}
+    {{- if .Values.nodeSelector }}
+      nodeSelector:
+        {{ toYaml .Values.nodeSelector | nindent 8 }}
+    {{- end }}
+{{- end }}

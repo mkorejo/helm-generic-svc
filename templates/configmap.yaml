@@ -1,0 +1,16 @@
+{{ if .Values.config }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "srpt-svc.name" . }}
+  labels:
+    {{- include "srpt-svc.labels" . | nindent 4 }}
+{{- if contains ".json" (.Values.configFilename | default "config.json") }}
+data:
+  {{ .Values.configFilename | default "config.json" }}: |
+    {{ include "srpt-svc.config" . }}
+{{- else if contains ".properties" .Values.configFilename }}
+data:
+  {{- .Values.config | toYaml | nindent 2 }}
+{{- end }}
+{{ end }}

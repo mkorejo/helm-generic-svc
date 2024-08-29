@@ -1,0 +1,10 @@
+{{- if .Values.role.rules -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "srpt-svc.serviceAccountName" . }}-role
+{{- with .Values.role.rules }}
+rules:
+{{ toYaml . }}
+{{- end }}
+{{- end }}
