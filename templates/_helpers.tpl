@@ -1,7 +1,7 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "srpt-svc.name" -}}
+{{- define "fia-svc.name" -}}
 {{- $name := default .Chart.Name .Values.name }}
 {{- if contains $name .Release.Name }}
 {{- .Release.Name | trunc 63 | trimSuffix "-" }}
@@ -13,16 +13,16 @@ Expand the name of the chart.
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "srpt-svc.chart" -}}
+{{- define "fia-svc.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Common labels
 */}}
-{{- define "srpt-svc.labels" -}}
-helm.sh/chart: {{ include "srpt-svc.chart" . }}
-{{ include "srpt-svc.selectorLabels" . }}
+{{- define "fia-svc.labels" -}}
+helm.sh/chart: {{ include "fia-svc.chart" . }}
+{{ include "fia-svc.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -32,17 +32,17 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Selector labels
 */}}
-{{- define "srpt-svc.selectorLabels" -}}
-app: {{ include "srpt-svc.name" . }}
+{{- define "fia-svc.selectorLabels" -}}
+app: {{ include "fia-svc.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
 Create the name of the service account to use
 */}}
-{{- define "srpt-svc.serviceAccountName" -}}
+{{- define "fia-svc.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create }}
-{{- default (include "srpt-svc.name" .) .Values.serviceAccount.name }}
+{{- default (include "fia-svc.name" .) .Values.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
@@ -51,7 +51,7 @@ Create the name of the service account to use
 {{/*
 Derive short-form AWS region code
 */}}
-{{- define "srpt-svc.region" -}}
+{{- define "fia-svc.region" -}}
 {{- $regionCode := "" }}
 {{- if eq .Values.awsRegion "us-east-1" }}
 {{- $regionCode = "use1" }}
@@ -69,7 +69,7 @@ Derive short-form AWS region code
 Add common configuration values to application-specific configurations.
 For example: AWS Account ID, AWS Region, Tier, Customer Name/Prefix, and timezone.
 */}}
-{{- define "srpt-svc.config" -}}
+{{- define "fia-svc.config" -}}
 {{- $consolidatedConfig := merge .Values.config (dict "awsAccountID" .Values.awsAccountID "awsRegion" .Values.awsRegion "customer" .Values.customer "tenant" .Values.customer "configTier" .Values.tier "tier" .Values.tier) | toJson }}
 {{- print $consolidatedConfig }}
 {{- end }}

@@ -1,5 +1,5 @@
 # **********************
-# *** srpt-svc VALUES ***
+# *** fia-svc VALUES ***
 # **********************
 
 # Specify the twelve-digit AWS account ID where the service is being deployed.
@@ -24,7 +24,7 @@ imagePullSecrets: []
 clusterName:
 
 # Top-level domains for DNS
-dnsZone: apps.sarepta.com
+dnsZone: apps.example.com
 
 additionalAnnotations: {}
 
@@ -126,6 +126,39 @@ role:
   # - apiGroups: ["argoproj.io"]
   #   resources: ["rollouts"]
   #   verbs: ["get", "patch", "update"]
+
+
+# ***************
+# *** SECRETS ***
+# ***************
+
+secretProviderClasses:
+# - name: example-aws-secrets
+#   provider: aws
+#   metadata:
+#     annotations: {}
+#     labels: {}
+#   spec:
+#     parameters:
+#       objects: |
+#         - objectName: "/my/secret/path"
+#           objectType: "secretsmanager"
+#           objectVersion: ""
+# - name: example-vault-secrets
+#   provider: vault
+#   metadata:
+#     annotations: {}
+#     labels: {}
+#   spec:
+#     parameters:
+#       vaultAddress: "https://vault.example.com"
+#       roleName: "k8s-role"
+#     secretObjects:
+#       - secretName: my-vault-secret
+#         type: Opaque
+#         data:
+#           - objectName: "secret/data/app"
+#             key: token
 
 
 # *******************************

@@ -2,11 +2,11 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: {{ include "srpt-svc.name" . }}-job
+  name: {{ include "fia-svc.name" . }}-job
   labels:
-    {{- include "srpt-svc.labels" . | nindent 4 }}
+    {{- include "fia-svc.labels" . | nindent 4 }}
     env: {{ .Values.tier }}
-    service: {{ include "srpt-svc.name" . }}
+    service: {{ include "fia-svc.name" . }}
     version: {{ .Chart.Version }}
   {{- if not (empty .Values.additionalAnnotations) }}
   annotations:
@@ -24,13 +24,13 @@ spec:
       completions: 1
       template:
         metadata:
-          name: {{ include "srpt-svc.name" . }}-job
+          name: {{ include "fia-svc.name" . }}-job
           labels:
             env: {{ .Values.tier }}
-            service: {{ include "srpt-svc.name" . }}
+            service: {{ include "fia-svc.name" . }}
             version: {{ .Chart.Version }}
         spec:
-          serviceAccountName: {{ include "srpt-svc.serviceAccountName" . }}
+          serviceAccountName: {{ include "fia-svc.serviceAccountName" . }}
           containers:
             - name: main
               image: "{{ .Values.job.image.repository }}:{{ .Values.job.image.tag }}"
@@ -87,7 +87,7 @@ spec:
           {{- if not (empty .Values.config) }}
           - name: config
             configMap:
-              name: {{ include "srpt-svc.name" . }}
+              name: {{ include "fia-svc.name" . }}
           {{- end }}
         {{- end }}
           restartPolicy: Never

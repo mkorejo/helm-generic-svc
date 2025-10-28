@@ -2,11 +2,11 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  generateName: {{ include "srpt-svc.name" . }}-job
+  generateName: {{ include "fia-svc.name" . }}-job
   labels:
-    {{- include "srpt-svc.selectorLabels" . | nindent 4 }}
+    {{- include "fia-svc.selectorLabels" . | nindent 4 }}
     env: {{ .Values.tier }}
-    service: {{ include "srpt-svc.name" . }}
+    service: {{ include "fia-svc.name" . }}
     version: {{ .Chart.Version }}
   {{- if not (empty .Values.additionalAnnotations) }}
   annotations:
@@ -18,14 +18,14 @@ spec:
   ttlSecondsAfterFinished: {{ .Values.job.ttlSecondsAfterFinished }}
   template:
     metadata:
-      name: {{ include "srpt-svc.name" . }}-job
+      name: {{ include "fia-svc.name" . }}-job
       labels:
-        {{- include "srpt-svc.selectorLabels" . | nindent 8 }}
+        {{- include "fia-svc.selectorLabels" . | nindent 8 }}
         env: {{ .Values.tier }}
-        service: {{ include "srpt-svc.name" . }}
+        service: {{ include "fia-svc.name" . }}
         version: {{ .Chart.Version }}
     spec:
-      serviceAccountName: {{ include "srpt-svc.serviceAccountName" . }}
+      serviceAccountName: {{ include "fia-svc.serviceAccountName" . }}
       containers:
         - name: main
           image: "{{ .Values.job.image.repository }}:{{ .Values.job.image.tag }}"
@@ -82,7 +82,7 @@ spec:
       {{- if not (empty .Values.config) }}
       - name: config
         configMap:
-          name: {{ include "srpt-svc.name" . }}
+          name: {{ include "fia-svc.name" . }}
       {{- end }}
     {{- end }}
       restartPolicy: Never

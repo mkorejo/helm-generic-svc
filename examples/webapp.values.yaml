@@ -1,7 +1,7 @@
 # Specify the name of the service being deployed.
 name: <application-name>
 tier: <application-tier>
-dnsZone: apps.sarepta.com
+dnsZone: apps.example.com
 
 
 # ********************************************
@@ -13,6 +13,40 @@ image:
   pullPolicy: IfNotPresent
   tag: latest
 
+
+# ***************
+# *** SECRETS ***
+# ***************
+
+secretProviderClasses:
+- name: example-aws-secrets
+  provider: aws
+  metadata:
+    annotations:
+      example.com/annotation: "value"
+    labels:
+      example.com/label: "value"
+  spec:
+    parameters:
+      objects: |
+        - objectName: "/my/secret/path"
+          objectType: "secretsmanager"
+          objectVersion: ""
+- name: example-vault-secrets
+  provider: vault
+  metadata:
+    annotations: {}
+    labels: {}
+  spec:
+    parameters:
+      vaultAddress: "https://vault.example.com"
+      roleName: "k8s-role"
+    secretObjects:
+      - secretName: my-vault-secret
+        type: Opaque
+        data:
+          - objectName: "secret/data/app"
+            key: token
 
 # ************
 # *** RBAC ***
