@@ -1,0 +1,35 @@
+{{- range $idx, $pvc := .Values.persistentVolumeClaims }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ default (printf "%s-pvc-%d" $.Release.Name $idx) $pvc.name | quote }}
+  {{- with $pvc.labels }}
+  labels:
+{{ toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with $pvc.annotations }}
+  annotations:
+{{ toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  accessModes:
+{{- if $pvc.accessModes }}
+{{- toYaml $pvc.accessModes | nindent 4 }}
+{{- else }}
+    - ReadWriteOnce
+{{- end }}
+  resources:
+    requests:
+      storage: {{ default "1Gi" $pvc.size | quote }}
+  {{- if $pvc.storageClassName }}
+  storageClassName: {{ $pvc.storageClassName | quote }}
+  {{- end }}
+  {{- if $pvc.volumeMode }}
+  volumeMode: {{ $pvc.volumeMode | quote }}
+  {{- end }}
+  {{- if $pvc.selector }}
+  selector:
+{{- toYaml $pvc.selector | nindent 4 }}
+  {{- end }}
+---
+{{- end }}

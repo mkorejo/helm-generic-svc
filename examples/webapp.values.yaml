@@ -13,6 +13,16 @@ image:
   pullPolicy: IfNotPresent
   tag: latest
 
+persistentVolumeClaims:
+- name: my-pvc
+  accessModes: ["ReadWriteMany"]
+  size: 10Gi
+- name: my-other-pvc
+  accessModes: ["ReadWriteOnce", "ReadWriteMany"]
+  size: 100Gi
+  storageClassName: standard-rwo
+  volumeMode: Filesystem
+
 
 # ***************
 # *** SECRETS ***

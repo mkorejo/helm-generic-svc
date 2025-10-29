@@ -100,7 +100,20 @@ readinessProbePath: /ping
 # Pod annotations are used to configure IAM role assumption on kOps clusters.
 podAnnotations: {}
 
-# Specify additional volumes
+# Specify a list of Persistent Volume Claims (PVCs) to be created.
+persistentVolumeClaims:
+# - name: my-pvc
+#   labels: {}
+#   annotations: {}
+#   accessModes: ["ReadWriteMany"]      # Defaults to ["ReadWriteOnce"]
+#   size: 10Gi                          # Defaults to "1Gi"
+#   storageClassName: standard
+#   volumeMode: Filesystem
+#   selector:
+#       matchLabels: { app: my-app }
+
+# Specify additional volumes to be mounted.
+# Any PVCs defined above are not automatically mounted; they must be included here.
 volumes:
   # List Kubernetes Secrets to be mounted as volumes. Secrets must exist in the same namespace.
   secrets:
