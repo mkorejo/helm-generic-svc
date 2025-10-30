@@ -63,7 +63,7 @@ config: {}
 
 # Specify the image repository and tag for the service.
 image:
-  repository: ghcr.io/srpt/placeholder
+  repository: ghcr.io/org/placeholder
   pullPolicy: IfNotPresent
   tag: latest
 
@@ -86,7 +86,7 @@ job:
   concurrencyPolicy: Forbid
 # cronSchedule: '* * * * *'
   image:
-    repository: ghcr.io/srpt/placeholder
+    repository: ghcr.io/org/placeholder
     pullPolicy: IfNotPresent
     tag: latest
   # Jobs are cleaned after 10 days.
@@ -106,6 +106,9 @@ persistentVolumeClaims:
 #   labels: {}
 #   annotations: {}
 #   accessModes: ["ReadWriteMany"]      # Defaults to ["ReadWriteOnce"]
+#   mountEnabled: false                 # Boolean to mount the PVC into the pod. Defaults to true.
+#   mountPath: /data/storage            # Mount path inside the pod.
+#   readOnly: false                     # Boolean to mount the PVC as read-only. Defaults to false.
 #   size: 10Gi                          # Defaults to "1Gi"
 #   storageClassName: standard
 #   volumeMode: Filesystem
@@ -113,12 +116,9 @@ persistentVolumeClaims:
 #       matchLabels: { app: my-app }
 
 # Specify additional volumes to be mounted.
-# Any PVCs defined above are not automatically mounted; they must be included here.
+# ConfigMap volume is mounted automatically if config is defined.
+# Any PVCs defined above are automatically mounted if mountEnabled is true.
 volumes:
-  # List Kubernetes Secrets to be mounted as volumes. Secrets must exist in the same namespace.
-  secrets:
-  # - name: srpt-ghcr
-  #   mountPath: /tmp/srpt-ghcr
 
 
 # ************

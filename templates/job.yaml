@@ -53,36 +53,46 @@ spec:
             {{- end }}
         {{- end }}
           imagePullPolicy: {{ .Values.job.image.pullPolicy }}
-        {{- if or (.Values.volumes.secrets) (not (empty .Values.config)) }}
+        {{- if or (not (empty .Values.config)) (not (empty .Values.persistentVolumeClaims)) (not (empty .Values.volumes)) }}
           volumeMounts:
-          {{- if .Values.volumes.secrets }}
-            {{- range .Values.volumes.secrets }}
-            - name: {{ print .name "-vol" }}
-              mountPath: {{ .mountPath }}
-              readOnly: true
-            {{- end }}
-          {{- end }}
           {{- if not (empty .Values.config) }}
             - name: config
               mountPath: {{ .Values.configPath | default "/data/config" }}
+          {{- end }}
+          {{- if not (empty .Values.persistentVolumeClaims) }}
+            {{- range $i, $pvc := .Values.persistentVolumeClaims }}
+              {{- if $pvc.mountEnabled }}
+            - name: {{ $pvc.name }}
+              mountPath: {{ $pvc.mountPath }}
+              {{- if $pvc.readOnly }}
+              readOnly: true
+              {{- end }}
+              {{- end }}
+            {{- end }}
+          {{- end }}
+          {{- if not (empty .Values.volumes) }}
+            {{ .Values.volumes | toYaml | nindent 12 }}
           {{- end }}
         {{- end }}
         {{- if .Values.resources }}
           resources: {{ toYaml .Values.resources | nindent 10 }}
         {{- end }}
-    {{- if or (.Values.volumes.secrets) (not (empty .Values.config)) }}
+    {{- if or (not (empty .Values.config)) (not (empty .Values.persistentVolumeClaims)) (not (empty .Values.volumes)) }}
       volumes:
-      {{- if .Values.volumes.secrets }}
-      {{- range .Values.volumes.secrets }}
-      - name: {{ print .name "-vol" }}
-        secret:
-          secretName: {{ .name }}
-      {{- end }}
-      {{- end }}
       {{- if not (empty .Values.config) }}
       - name: config
         configMap:
           name: {{ include "fia-svc.name" . }}
+      {{- end }}
+      {{- if not (empty .Values.persistentVolumeClaims) }}
+        {{- range $i, $pvc := .Values.persistentVolumeClaims }}
+      - name: {{ $pvc.name }}
+        persistentVolumeClaim:
+          claimName: {{ $pvc.name }}
+        {{- end }}
+      {{- end }}
+      {{- if not (empty .Values.volumes) }}
+        {{ .Values.volumes | toYaml | nindent 8 }}
       {{- end }}
     {{- end }}
       restartPolicy: Never
