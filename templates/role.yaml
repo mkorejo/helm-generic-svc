@@ -2,7 +2,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: {{ include "srpt-svc.serviceAccountName" . }}-role
+  name: {{ include "fia-svc.serviceAccountName" . }}-role
 {{- with .Values.role.rules }}
 rules:
 {{ toYaml . }}

@@ -1,4 +1,4 @@
-# srpt-svc
+# fia-svc
 
 This is a reusable Helm chart for deploying workloads to Kubernetes. Based on the contents of `values.yaml`, different types of workloads can be deployed. The following is supported:
 
@@ -13,7 +13,7 @@ This is a reusable Helm chart for deploying workloads to Kubernetes. Based on th
 
 1. Ensure you have a GitLab project for your container image build which includes a `.gitlab-ci.yml` for building and publishing your image(s) to AWS ECR.
 1. Create a `values.yaml` (or multiple representing different environments) in your own GitLab project. [Examples](./examples/) are embedded in this chart for getting started easily.
-1. Engage the [Sarepta IT Platform team](https://platform-team-core-docs-sarepta-it-platform-team-91b6c7d5ea75ed.gitlab.io/#platform-team-members) for onboarding yourself and your application to [Argo CD](https://platform-team-core-docs-sarepta-it-platform-team-91b6c7d5ea75ed.gitlab.io/platform_tools/argocd/).
+1. Engage the IT Platform team for onboarding yourself and your application to GitOps.
 
 ## Example Values
 

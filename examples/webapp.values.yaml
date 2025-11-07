@@ -1,7 +1,7 @@
 # Specify the name of the service being deployed.
 name: <application-name>
 tier: <application-tier>
-dnsZone: apps.sarepta.com
+dnsZone: apps.example.com
 
 
 # ********************************************
@@ -9,9 +9,64 @@ dnsZone: apps.sarepta.com
 # ********************************************
 
 image:
-  repository: ghcr.io/srpt/placeholder
-  pullPolicy: IfNotPresent
-  tag: latest
+  repository: nginx
+  pullPolicy: Always
+  tag: 1.0.0
+
+config:
+  setting1: value1
+  setting2: value2
+
+persistentVolumeClaims:
+- name: my-pvc
+  accessModes: ["ReadWriteMany"]
+  mountEnabled: true
+  mountPath: /data/storage
+  size: 10Gi
+- name: my-other-pvc
+  accessModes: ["ReadWriteOnce", "ReadWriteMany"]
+  mountEnabled: true
+  mountPath: /data/storage2
+  size: 100Gi
+  storageClassName: standard-rwo
+  volumeMode: Filesystem
+
+volumes:
+
+
+# ***************
+# *** SECRETS ***
+# ***************
+
+secretProviderClasses:
+- name: example-aws-secrets
+  provider: aws
+  metadata:
+    annotations:
+      example.com/annotation: "value"
+    labels:
+      example.com/label: "value"
+  spec:
+    parameters:
+      objects: |
+        - objectName: "/my/secret/path"
+          objectType: "secretsmanager"
+          objectVersion: ""
+- name: example-vault-secrets
+  provider: vault
+  metadata:
+    annotations: {}
+    labels: {}
+  spec:
+    parameters:
+      vaultAddress: "https://vault.example.com"
+      roleName: "k8s-role"
+    secretObjects:
+      - secretName: my-vault-secret
+        type: Opaque
+        data:
+          - objectName: "secret/data/app"
+            key: token
 
 
 # ************
